@@ -4,6 +4,8 @@ import com.example.mongoapp.MongoappApplication;
 import com.example.mongoapp.dao.mongo.MDemoDao;
 import com.example.mongoapp.dao.neo4j.NDemoDao;
 import com.example.mongoapp.entity.Demo;
+import com.example.mongoapp.entity.Relation;
+import org.bson.Document;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,11 +13,16 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.aggregation.*;
+import org.springframework.data.mongodb.core.mapreduce.MapReduceOptions;
+import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+
 //@PropertySource(value="classpath:application-app0.properties")
 //@ComponentScan(basePackages={"com.example.mongoapp.dao"})
 @RunWith(SpringRunner.class)
@@ -28,6 +35,8 @@ public class DemoDaoTest {
     private MDemoDao dao;
     @Autowired
     private NDemoDao ndao;
+    @Autowired
+    private MongoTemplate template;
 
 
     @Test
@@ -69,5 +78,50 @@ public class DemoDaoTest {
 //        d=dao.insert(d);
 //        System.out.println("第二次insert:"+d);
     }
+
+//    @Test
+    public List testAggregate(){
+//        Aggregation.newAggregation().withOptions();
+        AggregationOptions allowDiskUse= AggregationOptions.builder().allowDiskUse(true).build();
+        new AggregationOperation() {
+            @Override
+            public Document toDocument(AggregationOperationContext context) {
+                return new Document("$out","test");
+            }
+        };
+//        Aggregation aggregation=Aggregation.newAggregation().withOptions(allowDiskUse);
+        AggregationResults<Map>aggregationResults;
+        aggregationResults = template.aggregate(Aggregation.newAggregation(Aggregation.group("end").count().as("count"),Aggregation.match(Criteria.where("count").gte(2))).withOptions(allowDiskUse),"BaseRelation",Map.class);
+        List<Map>list=aggregationResults.getMappedResults();
+        List result=new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); i++) {
+            Map obj=list.get(i);
+            System.out.println(obj);
+            result.add(obj.get("_id"));
+        }
+        System.out.println(list.size());
+        return result;
+    }
+    @Test
+    public void testMapReduce(){
+        MapReduceResults<Map>mapReduceResults= template.mapReduce("BaseRelation","function(){emit(this.end,1);}","function(k,v){return Array.sum(v);}", MapReduceOptions.options(),Map.class);
+        Iterator<Map>iterator=mapReduceResults.iterator();
+        while(iterator.hasNext()){
+            Map obj=iterator.next();
+            System.out.println(obj);
+        }
+        System.out.println(mapReduceResults.getCounts());//全部查询结果
+    }
+    @Test
+    public void testExclued(){
+        List besides=testAggregate();
+        Query query=new Query().addCriteria(Criteria.where("end").nin(besides));
+        List<Relation>list= template.find(query,Relation.class,"BaseRelation");
+        for (int i = 0; i <list.size() ; i++) {
+            System.out.println(list.get(i));
+        }
+        System.out.println(list.size());
+    }
+
 
 }
