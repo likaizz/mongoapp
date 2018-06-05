@@ -33,7 +33,8 @@ public class GraphicBaseDaoImp implements GraphicBaseDao {
         String labelName = pageResult.getLabelName();
         Map<String, List> params = new HashMap(1);
         params.put("list", list);
-        String query = "unwind {list} as one create (x:" + labelName + ") set x=one";
+//        String query = "unwind {list} as one create (x:" + labelName + ") set x=one";
+        String query = "unwind {list} as one merge (x:" + labelName + "{mongoId:one.mongoId}) set x=one";
         session.query(Demo.class, query, params);
     }
 

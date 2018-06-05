@@ -123,5 +123,10 @@ public class DemoDaoTest {
         System.out.println(list.size());
     }
 
+    @Test
+    public void testProcedure(){
+       template.execute();
+    }
+
 
 }
