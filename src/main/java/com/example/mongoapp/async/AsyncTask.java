@@ -2,9 +2,13 @@ package com.example.mongoapp.async;
 
 import com.example.mongoapp.dao.GraphicBaseDao;
 import com.example.mongoapp.dao.OriginBasicDao;
+import com.example.mongoapp.dao.oracle.OPersonDaoOrigin;
+import com.example.mongoapp.entity.Person;
 import com.example.mongoapp.utils.thread.Page;
 import com.example.mongoapp.utils.thread.PageResult;
 import com.example.mongoapp.utils.thread.PageTask;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -19,6 +23,33 @@ import java.util.concurrent.Future;
 
 @Component
 public class AsyncTask {
+    private static final Logger log = LoggerFactory.getLogger(AsyncTask.class);
+
+    /**
+     * 异常调用返回Future
+     * 对于返回值是Future，不会被AsyncUncaughtExceptionHandler处理，需要我们在方法中捕获异常并处理
+     * 或者在调用方在调用Futrue.get时捕获异常进行处理
+     *
+     * @param i
+     * @return
+     */
+    @Async
+    public Future<String> asyncInvokeReturnFuture(int i) {
+        log.info("asyncInvokeReturnFuture, parementer={}", i);
+        Future<String> future;
+        try {
+            Thread.sleep(1000 * 1);
+            future = new AsyncResult<String>("success:" + i);
+            throw new IllegalArgumentException("a");
+        } catch (InterruptedException e) {
+            future = new AsyncResult<String>("error");
+        } catch (IllegalArgumentException e) {
+            future = new AsyncResult<String>("error-IllegalArgumentException");
+        }
+        return future;
+    }
+
+
     @Autowired
     private GraphicBaseDao graphicBaseDao;
     private ExecutorService pool = Executors.newFixedThreadPool(4);
@@ -27,7 +58,7 @@ public class AsyncTask {
     public Future<PageResult> query(String label, Page page, OriginBasicDao originBasicDao/*, CountDownLatch sign*/) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         List result = originBasicDao.findByIdx(page.getStartIdx(), page.getEndIdx());
-        PageResult pageResult=new PageResult(label,result,page);
+        PageResult pageResult = new PageResult(label, result, page);
 //        System.out.println("query耗时:" + (System.currentTimeMillis() - startTime) + "ms");
 //        if (sign != null) sign.countDown();
         return new AsyncResult<PageResult>(pageResult);
@@ -42,8 +73,8 @@ public class AsyncTask {
                 System.out.println(subPages.get(i)/*.getQueryResult()*/);
                 graphicBaseDao.insertMany(subPages.get(i));
             }
-        } else  {//多线程  每个线程承载的数据量在10万以内<=10万 平均分配  4个线程
-            insertByMulti(subPages,4);
+        } else {//多线程  每个线程承载的数据量在10万以内<=10万 平均分配  4个线程
+            insertByMulti(subPages, 4);
 
             /*int threadNum = 4;
             int poolCount = (int) Math.ceil(num / 400000.0);
@@ -109,4 +140,18 @@ public class AsyncTask {
         }
         return queue;
     }
+
+    @Autowired
+    OPersonDaoOrigin oPersonDaoOrigin;
+
+    //    @Async
+    public Person test(String name) throws InterruptedException {
+
+        System.out.println("AsyncTask.test():" + Thread.currentThread().getName());
+        Person p = oPersonDaoOrigin.findOne();
+        p.setName(name);
+        oPersonDaoOrigin.update(p);
+        return p;
+    }
+
 }

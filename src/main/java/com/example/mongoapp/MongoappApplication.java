@@ -5,9 +5,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
@@ -18,8 +18,9 @@ import java.util.Arrays;
 
 //@Configuration
 @SpringBootApplication
-@PropertySource({"classpath:application-app0.properties","classpath:application.properties"})
+//@PropertySource({"classpath:application-app0.properties","classpath:application.properties"})
 @RestController
+@EnableAsync
 public class MongoappApplication {
     @Value("${lol}")
     private String lol;
@@ -30,23 +31,6 @@ public class MongoappApplication {
     public void init() {
         System.out.println(lol);
     }
-//	@Value("${spring.data.neo4j.uri}")
-//	private String databaseUrl;
-//
-//	@Value("${spring.data.neo4j.username}")
-//	private String userName;
-//
-//	@Value("${spring.data.neo4j.password}")
-//	private String password;
-
-//	@Bean
-//	public SessionFactory sessionFactory() {
-//		Configuration configuration = new Configuration();
-//		configuration.set("uri",databaseUrl);	//.uri(databaseUrl)
-//		configuration.set("username",userName)	;//	.credentials(userName, password)
-//		configuration.set("password",password)	;//	.credentials(userName, password)
-//		return new SessionFactory(configuration, "com.example.mongoapp.entity");
-//	}
 
     @Bean("defaultSDF")
     public SimpleDateFormat defaultDateFormat() {
@@ -55,7 +39,6 @@ public class MongoappApplication {
     }
 
     public static void main(String[] args) {
-
         ConfigurableApplicationContext context = SpringApplication.run(MongoappApplication.class, args);
         String[] beans = context.getBeanDefinitionNames();
         Arrays.sort(beans);

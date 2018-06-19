@@ -4,11 +4,10 @@ import com.example.mongoapp.entity.Demo;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
-@Repository
+//@Repository
 public interface NDemoDao extends Neo4jRepository<Demo, Long> {
 //    public static final NDemoDaoImpl impl;//=new NDemoDaoImpl();
 

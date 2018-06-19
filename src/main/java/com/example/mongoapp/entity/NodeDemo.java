@@ -4,8 +4,6 @@ import org.neo4j.ogm.annotation.GraphId;
 import org.neo4j.ogm.annotation.typeconversion.DateLong;
 
 import java.util.Date;
-//@NodeEntity(label="NodeDemo")
-//@Document(collection = "node")
 public class NodeDemo  {
     @GraphId
     private Long id;
@@ -13,6 +11,14 @@ public class NodeDemo  {
     private Integer age;
     @DateLong
     private Date birthday;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getName() {
         return name;
@@ -40,10 +46,11 @@ public class NodeDemo  {
 
     @Override
     public String toString() {
-        return "NodeDemo{" +
+        return "{" +
+                "id="+id+","+
                 "name='" + name + '\'' +
                 ", age=" + age +
-                ", birthday=" + birthday +
+//                ", birthday=" + birthday.getTime() +
                 '}';
     }
 }

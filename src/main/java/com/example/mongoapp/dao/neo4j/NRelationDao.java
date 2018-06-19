@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface NRelationDao extends Neo4jRepository<Relation,Long> {
-    @Query(" unwind {list} as one match  (s:Demo),(e:DemoCopy)" +
+    @Query(" unwind {list} as one match  (s:Start),(e:DemoCopy)" +
             " where s.no=one.start and e.no=one.end" +
             " merge (s)-[r:Relation]->(e) set r=one")
 //    @Query(" unwind {list} as one match  (s:Demo),(e:DemoCopy)" +

@@ -1,9 +1,6 @@
 package com.example.mongoapp.entity;
 
-import com.example.mongoapp.utils.dbconvert.ObjectIdConvert;
 import org.bson.types.ObjectId;
-import org.neo4j.ogm.annotation.GraphId;
-import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.annotation.typeconversion.DateLong;
 import org.springframework.data.annotation.Id;
 
@@ -15,9 +12,9 @@ import java.util.Date;
 public class User implements Serializable {
 
     @Id   //@Index(unique=true)
-    @Convert(value= ObjectIdConvert.class,graphPropertyType= ObjectIdConvert.class)
+//    @Convert(value= ObjectIdConvert.class,graphPropertyType= ObjectIdConvert.class)
     private ObjectId mongoId;
-    @GraphId  //@Indexed(unique = true)
+//    @GraphId  //@Indexed(unique = true)
     private Long neo4jId;
     public User(ObjectId mongoId) {
         this.mongoId = mongoId;

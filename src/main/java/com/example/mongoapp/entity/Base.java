@@ -9,7 +9,7 @@ public class Base extends BaseNode {
         return this.mongoId!=null;
     }
     @org.springframework.data.annotation.Id
-    @org.neo4j.ogm.annotation.Index(unique=true)
+//    @org.neo4j.ogm.annotation.Index(unique=true)
 //    @Convert(value = ObjectIdStringConvert.class ,graphPropertyType = ObjectIdStringConvert.class)
     private String mongoId;
     private String name;

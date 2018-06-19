@@ -3,11 +3,11 @@ package com.example.mongoapp.testDao;
 import com.example.mongoapp.MongoappApplication;
 import com.example.mongoapp.dao.mongo.MDemoDao;
 import com.example.mongoapp.dao.neo4j.NDemoDao;
+import com.example.mongoapp.dao.neo4j.NRelationDao;
 import com.example.mongoapp.entity.Demo;
 import com.example.mongoapp.entity.Relation;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,10 @@ import org.springframework.data.mongodb.core.mapreduce.MapReduceOptions;
 import org.springframework.data.mongodb.core.mapreduce.MapReduceResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 
@@ -37,10 +40,19 @@ public class DemoDaoTest {
     private NDemoDao ndao;
     @Autowired
     private MongoTemplate template;
+    @Autowired
+    private NRelationDao nRelationDao;
+
+    public void rela(){
+        Optional<Relation>optional=nRelationDao.findById(896246l);
+        Relation r=optional.get();
+        r.setEnd("5b13c4167937fc20c0fdaa26");
+        nRelationDao.save(r);
+    }
 
 
     @Test
-    public void test(){
+    public void test() throws InterruptedException {
         Demo d=new Demo();
         d.setName("yasuo");
         d.setMongoId(new ObjectId().toString());
@@ -53,7 +65,7 @@ public class DemoDaoTest {
     }
 
 
-    @Before
+//    @Before
     public void before(){
         String[]beans=context.getBeanDefinitionNames();
         Arrays.sort(beans);
@@ -61,6 +73,15 @@ public class DemoDaoTest {
             System.out.println(x);
         }
     }
+
+    @Test
+    public void httpRequestTest(){
+        RestTemplate req = new RestTemplate();
+        ResponseEntity<Integer> resp=req.exchange("http://localhost:8085/myPort", HttpMethod.GET,null,Integer.class);
+        System.out.println(resp.getBody());
+    }
+
+
 
 
     @Test
@@ -125,7 +146,7 @@ public class DemoDaoTest {
 
     @Test
     public void testProcedure(){
-       template.execute();
+//       template.execute();
     }
 
 

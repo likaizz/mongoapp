@@ -6,16 +6,20 @@ import com.example.mongoapp.dao.mongo.MDemoDao;
 import com.example.mongoapp.dao.mongo.MRelationDao;
 import com.example.mongoapp.dao.neo4j.NDemoCopyDao;
 import com.example.mongoapp.dao.neo4j.NDemoDao;
+import com.example.mongoapp.dao.neo4j.NPersonDao;
 import com.example.mongoapp.dao.neo4j.NRelationDao;
 import com.example.mongoapp.entity.Demo;
 import com.example.mongoapp.entity.DemoCopy;
+import com.example.mongoapp.entity.Person;
 import com.example.mongoapp.entity.Relation;
-import com.example.mongoapp.utils.thread.Page;
 import com.example.mongoapp.utils.thread.PageResult;
 import org.apache.commons.lang3.RandomUtils;
 import org.bson.types.ObjectId;
+import org.neo4j.ogm.session.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,9 +27,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -55,13 +61,18 @@ public class DemoController {
     @Autowired
     private AsyncTask asyncTask;
 
+    @PostConstruct
+    public void init(){
+        System.out.println("demo init");
+    }
+
     @GetMapping("/insert/{type}/{num}")
     public String insertBySingle(@PathVariable("type") String type, @PathVariable("num") int num) {
         Date date = new Date();
         List<Demo> list = new ArrayList<>(num);
         for (int x = 0; x < num; x++) {
             Demo d = new Demo((type + defaultSDF.format(date)) + x);
-            d.setNo(date.getTime() + x);
+//            d.setNo(date.getTime() + x);
 //            d.setMongoId(new ObjectId());
             d.setMongoId(new ObjectId().toString());
             list.add(d);
@@ -90,11 +101,11 @@ public class DemoController {
     public long autoInsert(@PathVariable("type") String type, @PathVariable("num") int num) throws InterruptedException {
         Date date = new Date();
         List list = new ArrayList<>(num);
-        long startTime=System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         if ("demo".equalsIgnoreCase(type)) {
             for (int x = 0; x < num; x++) {
                 Demo d = new Demo((type + defaultSDF.format(date)) + x);
-                d.setNo(date.getTime() + x);
+//                d.setNo(date.getTime() + x);
                 list.add(d);
             }
 //            Demo result =mdao.insert(list.get(0));
@@ -123,11 +134,11 @@ public class DemoController {
 //            long e = System.currentTimeMillis();
 //            System.out.println("存入" + type + "集合中" + num + "条数据耗时:" + (e - s) / 1000 + " s");
         }
-        CountDownLatch sign=new CountDownLatch(1);
-        PageResult pageResult=new PageResult(type,list,new Page(1,num));
-        asyncTask.insert(pageResult,sign);
+        CountDownLatch sign = new CountDownLatch(1);
+        PageResult pageResult = null;//new PageResult(type, list, new Page(1, num));
+        asyncTask.insert(pageResult, sign);
         sign.await();
-        return System.currentTimeMillis()-startTime;
+        return System.currentTimeMillis() - startTime;
 //        return list;     //插入完成后list集合中的对象主键有值
     }
 
@@ -137,9 +148,9 @@ public class DemoController {
 //        List<Demo> demos = template.find(query, Demo.class);
 //        List<DemoCopy> demoCopys = template.find(query, DemoCopy.class);
 //        List<Relation> relations = new ArrayList<>(100000);
-        long s=System.currentTimeMillis();
-        List<String> demos =  ndao.get(200000);
-        List<String> demoCopys =  nDemoCopyDao.get(400000);
+        long s = System.currentTimeMillis();
+        List<String> demos = ndao.get(200000);
+        List<String> demoCopys = nDemoCopyDao.get(400000);
         List<Relation> relations = new ArrayList<>(400000);
         for (String x : demos) {
             int count = RandomUtils.nextInt(0, 4);
@@ -151,15 +162,15 @@ public class DemoController {
                 relations.add(r);
             }
         }
-        int size=relations.size();
-        int batchSize= (int) Math.ceil(size/2.0);
-        for(int i=0;i<2;i++){
-            int from=i*batchSize;
-            int to=from+batchSize;
-            if(i==1)to=size;
-            template.insert(relations.subList(from,to), Relation.class);
+        int size = relations.size();
+        int batchSize = (int) Math.ceil(size / 2.0);
+        for (int i = 0; i < 2; i++) {
+            int from = i * batchSize;
+            int to = from + batchSize;
+            if (i == 1) to = size;
+            template.insert(relations.subList(from, to), Relation.class);
         }
-        return System.currentTimeMillis()-s;
+        return System.currentTimeMillis() - s;
     }
 
     @GetMapping("/transRelation/{num}")
@@ -170,29 +181,29 @@ public class DemoController {
         long e0 = System.currentTimeMillis();
         System.out.println("mongoTemplate查询耗时:" + (e0 - s0) / 1000);
         long s = System.currentTimeMillis();
-        int threadSize= (int) Math.ceil(num/4.0);
-        CountDownLatch sign=new CountDownLatch(4);
-        ExecutorService service= Executors.newFixedThreadPool(4);
-            for(int i=0;i<4;i++){
-                int fromIdx=i*threadSize;
-                int toIdx=fromIdx+threadSize;
-                if(i==3)toIdx=num;
-                final List<Relation> subList=list.subList(fromIdx,toIdx);
-                Runnable run=new Runnable() {
-                    @Override
-                    public void run() {
+        int threadSize = (int) Math.ceil(num / 4.0);
+        CountDownLatch sign = new CountDownLatch(4);
+        ExecutorService service = Executors.newFixedThreadPool(4);
+        for (int i = 0; i < 4; i++) {
+            int fromIdx = i * threadSize;
+            int toIdx = fromIdx + threadSize;
+            if (i == 3) toIdx = num;
+            final List<Relation> subList = list.subList(fromIdx, toIdx);
+            Runnable run = new Runnable() {
+                @Override
+                public void run() {
 //                        nRelationDao.insertMany(subList);
-                        graphicBaseDao.insertRelation(list,"Relation");
-                        sign.countDown();
-                    }
-                };
-                service.execute(run);
-            }
+                    graphicBaseDao.insertRelation(list, "Relation");
+                    sign.countDown();
+                }
+            };
+            service.execute(run);
+        }
         service.shutdown();
         sign.await();
 
         long e = System.currentTimeMillis();
-        return e-s;
+        return e - s;
     }
 
 
@@ -236,8 +247,6 @@ public class DemoController {
     }*/
 
 
-
-
     @GetMapping("/getIds")
     public List getSimpleObject() {
 //        List<Demo>result=mdao.myfindAll();
@@ -256,7 +265,15 @@ public class DemoController {
         return nRelationDao.getAllIdsObject();
     }
 
-//    @GetMapping
+    @Autowired
+    private NPersonDao nPersonDao;
+    @Autowired
+    private Session session;
+    @GetMapping("/get/all")
+    public List list() {
+        List list=(List)session.query(Person.class,"match (x:Person) return x limit 10",new HashMap<>());
+         return list;// nPersonDao.findAll(new PageRequest(2,10));
+    }
 
 
 }

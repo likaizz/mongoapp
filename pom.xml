@@ -26,6 +26,16 @@
     </properties>
 
     <dependencies>
+        <!--<dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-core</artifactId>
+            <version>3.2.9.RELEASE</version>
+        </dependency>-->
+        <dependency>
+            <groupId>org.neo4j.procedure</groupId>
+            <artifactId>apoc</artifactId>
+            <version>3.2.0.1</version>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
@@ -86,16 +96,15 @@
         <!--<artifactId>neo4j-ogm-api</artifactId>-->
         <!--<version>3.1.0</version>-->
         <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>org.neo4j</groupId>-->
-        <!--<artifactId>neo4j-ogm-api</artifactId>-->
-        <!--<version>2.1.5</version>-->
-        <!--</dependency>-->
-        <!--<dependency>-->
-        <!--<groupId>org.neo4j</groupId>-->
-        <!--<artifactId>neo4j-ogm-bolt-driver</artifactId>-->
-        <!--<version>2.0.5</version>-->
-        <!--</dependency>-->
+        <dependency>
+        <groupId>org.neo4j</groupId>
+        <artifactId>neo4j-ogm-bolt-driver</artifactId>
+        <version>2.0.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.neo4j</groupId>
+            <artifactId>neo4j-ogm-http-driver</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>fastjson</artifactId>
