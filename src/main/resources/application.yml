@@ -2,3 +2,10 @@ server:
     tomcat:
       uri-encoding: utf-8
 
+
+myMap:
+   name: 李凯
+   age: 24
+#myMap: {name: 李凯,age: 24}
+#key后面的冒号必须要有空格
+
