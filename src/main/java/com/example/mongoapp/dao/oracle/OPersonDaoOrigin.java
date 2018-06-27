@@ -23,4 +23,6 @@ public interface OPersonDaoOrigin extends OriginBasicDao {
     @Update("update person set name=#{x.name,jdbcType=VARCHAR} where id=#{x.o_id,jdbcType=VARCHAR} ")
     public void update(@Param("x") Person x);
 
+
+
 }

@@ -77,7 +77,7 @@ public class DemoDaoTest {
     @Test
     public void httpRequestTest(){
         RestTemplate req = new RestTemplate();
-        ResponseEntity<Integer> resp=req.exchange("http://localhost:8085/myPort", HttpMethod.GET,null,Integer.class);
+        ResponseEntity<Integer> resp=req.exchange("http://localhost:8085/myPort?key1={key1}&key2={key2}", HttpMethod.GET,null,Integer.class);
         System.out.println(resp.getBody());
     }
 
